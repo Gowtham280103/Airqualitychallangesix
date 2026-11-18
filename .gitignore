@@ -1,0 +1,40 @@
+# ── Environment & Secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ── Frontend ──────────────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+
+# ── Backend ───────────────────────────────────────────────────────────────────
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+backend/.pytest_cache/
+backend/htmlcov/
+backend/.coverage
+backend/*.db
+backend/venv/
+backend/.venv/
+backend/env/
+
+# ── Root-level artefacts (stray files from project root) ──────────────────────
+node_modules/
+dist/
+__pycache__/
+*.pyc
+*.db
+.pytest_cache/
+
+# ── OS & Editor ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+*.swp
+*.swo
+settings.json
