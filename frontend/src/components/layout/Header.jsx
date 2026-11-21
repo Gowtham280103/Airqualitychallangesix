@@ -1,18 +1,31 @@
-import React, { useState } from 'react'
-import { Menu, Sun, Moon, MapPin, Search, Wind } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Menu, Sun, Moon, MapPin, Search, Wind, X } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
 import { useLocation } from '../../context/LocationContext'
 import { sanitizeCity } from '../../utils/sanitize'
+
+const POPULAR_CITIES = ['Delhi', 'Mumbai', 'Bengaluru', 'Kolkata', 'London', 'Tokyo']
 
 export default function Header({ onMenuClick }) {
   const { theme, toggleTheme } = useTheme()
   const { location, updateLocation } = useLocation()
   const [editing, setEditing] = useState(false)
   const [cityInput, setCityInput] = useState('')
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus()
+    }
+  }, [editing])
 
   function handleCitySubmit(e) {
     e.preventDefault()
-    const clean = sanitizeCity(cityInput)
+    applyCity(cityInput)
+  }
+
+  function applyCity(cityName) {
+    const clean = sanitizeCity(cityName)
     if (clean) {
       updateLocation({ city: clean, country: location.country })
     }
@@ -63,25 +76,57 @@ export default function Header({ onMenuClick }) {
         {/* Location selector */}
         <div className="flex items-center">
           {editing ? (
-            <form onSubmit={handleCitySubmit} className="flex gap-2 items-center">
-              <label htmlFor="city-input" className="sr-only">Enter city name</label>
-              <div className="relative">
-                <MapPin className="w-3.5 h-3.5 text-green-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
-                <input
-                  id="city-input"
-                  type="text"
-                  value={cityInput}
-                  onChange={e => setCityInput(e.target.value)}
-                  placeholder="City name…"
-                  className="input-field pl-8 py-1.5 text-sm w-36 sm:w-48 h-8"
-                  autoFocus
-                  maxLength={100}
-                  aria-label="City name"
-                />
+            <div className="relative">
+              <form onSubmit={handleCitySubmit} className="flex gap-2 items-center">
+                <label htmlFor="city-input" className="sr-only">Enter city name</label>
+                <div className="relative">
+                  <MapPin className="w-3.5 h-3.5 text-green-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
+                  <input
+                    id="city-input"
+                    ref={inputRef}
+                    type="text"
+                    value={cityInput}
+                    onChange={e => setCityInput(e.target.value)}
+                    placeholder="City name…"
+                    className="input-field pl-8 py-1.5 text-sm w-36 sm:w-48 h-8"
+                    maxLength={100}
+                    aria-label="City name"
+                  />
+                </div>
+                <button type="submit" className="btn-primary py-1 px-3 text-xs h-8">Set</button>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="btn-secondary py-1 px-2 text-xs h-8"
+                  aria-label="Cancel location change"
+                >
+                  <X className="w-3.5 h-3.5" aria-hidden="true" />
+                </button>
+              </form>
+
+              {/* Quick city suggestions popup */}
+              <div
+                className="absolute right-0 top-full mt-2 w-64 p-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 animate-scale-in"
+                role="region"
+                aria-label="Popular cities"
+              >
+                <p className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 px-2 py-1 uppercase tracking-wider">
+                  Popular Urban Hubs
+                </p>
+                <div className="flex flex-wrap gap-1 p-1">
+                  {POPULAR_CITIES.map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => applyCity(c)}
+                      className="text-xs px-2.5 py-1 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/30 text-gray-700 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors"
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <button type="submit" className="btn-primary py-1 px-3 text-xs h-8">Set</button>
-              <button type="button" onClick={() => setEditing(false)} className="btn-secondary py-1 px-3 text-xs h-8">Cancel</button>
-            </form>
+            </div>
           ) : (
             <button
               onClick={startEditing}

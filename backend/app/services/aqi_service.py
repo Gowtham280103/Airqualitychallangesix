@@ -1,29 +1,45 @@
 """
-AQI Service — fetches from WAQI API with demo data fallback.
+AQI Service — fetches from WAQI API with demo data fallback and caching.
 Never fabricates data as real measurements without labeling it as demo.
 """
 import httpx
 import math
 import random
 import logging
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
+import time
+from datetime import datetime, timedelta, timezone
+from typing import Dict, Any, List
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 WAQI_BASE = "https://api.waqi.info"
+_CACHE_TTL_SECONDS = 180  # 3 minutes cache for efficiency
+
+_current_aqi_cache: Dict[str, tuple[float, Dict[str, Any]]] = {}
+_history_aqi_cache: Dict[str, tuple[float, List[Dict[str, Any]]]] = {}
 
 
 async def get_current_aqi(city: str) -> Dict[str, Any]:
-    """Fetch current AQI data for a city."""
+    """Fetch current AQI data for a city with short-term in-memory caching."""
+    cache_key = city.lower().strip()
+    now = time.time()
+    if cache_key in _current_aqi_cache:
+        cached_time, cached_val = _current_aqi_cache[cache_key]
+        if now - cached_time < _CACHE_TTL_SECONDS:
+            return cached_val
+
     if settings.waqi_api_key:
         try:
-            return await _fetch_waqi_current(city)
+            data = await _fetch_waqi_current(city)
+            _current_aqi_cache[cache_key] = (now, data)
+            return data
         except Exception as e:
             logger.warning(f"WAQI API failed for {city}: {e}")
 
-    return _generate_demo_aqi(city)
+    demo_data = _generate_demo_aqi(city)
+    _current_aqi_cache[cache_key] = (now, demo_data)
+    return demo_data
 
 
 async def _fetch_waqi_current(city: str) -> Dict[str, Any]:
@@ -45,7 +61,7 @@ async def _fetch_waqi_current(city: str) -> Dict[str, Any]:
         "aqi": float(d.get("aqi", 0)),
         "city": d.get("city", {}).get("name", city),
         "source": "WAQI",
-        "updated_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
         "pollutants": {
             "pm25": iaqi.get("pm25", {}).get("v"),
             "pm10": iaqi.get("pm10", {}).get("v"),
@@ -70,7 +86,8 @@ def _generate_demo_aqi(city: str) -> Dict[str, Any]:
     Clearly labeled as demo data — not real measurements.
     """
     seed = sum(ord(c) for c in city.lower())
-    rng = random.Random(seed + datetime.utcnow().hour)
+    utc_now = datetime.now(timezone.utc)
+    rng = random.Random(seed + utc_now.hour)
 
     # City-characteristic base AQI
     city_low = city.lower()
@@ -97,7 +114,7 @@ def _generate_demo_aqi(city: str) -> Dict[str, Any]:
         "aqi": aqi,
         "city": city,
         "source": "Demo Data",
-        "updated_at": datetime.utcnow().isoformat(),
+        "updated_at": utc_now.isoformat(),
         "pollutants": {
             "pm25": pm25, "pm10": pm10, "no2": no2,
             "so2": so2, "co": co, "o3": o3,
@@ -113,10 +130,17 @@ def _generate_demo_aqi(city: str) -> Dict[str, Any]:
 
 
 async def get_aqi_history(city: str, days: int = 7) -> List[Dict[str, Any]]:
-    """Return AQI history for charting."""
+    """Return AQI history for charting with caching."""
+    cache_key = f"{city.lower().strip()}_{days}"
+    now = time.time()
+    if cache_key in _history_aqi_cache:
+        cached_time, cached_val = _history_aqi_cache[cache_key]
+        if now - cached_time < _CACHE_TTL_SECONDS:
+            return cached_val
+
     seed = sum(ord(c) for c in city.lower())
     rng = random.Random(seed)
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
 
     history = []
     # Base AQI roughly correlated with current demo
@@ -131,4 +155,5 @@ async def get_aqi_history(city: str, days: int = 7) -> List[Dict[str, Any]]:
             "demo": True,
         })
 
+    _history_aqi_cache[cache_key] = (now, history)
     return history

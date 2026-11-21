@@ -1,9 +1,13 @@
-import React, { createContext, useContext, useState, useCallback, useId } from 'react'
+import React, { createContext, useContext, useState, useCallback } from 'react'
 
 const AlertContext = createContext(null)
 
 export function AlertProvider({ children }) {
   const [alerts, setAlerts] = useState([])
+
+  const removeAlert = useCallback((id) => {
+    setAlerts(prev => prev.filter(a => a.id !== id))
+  }, [])
 
   const addAlert = useCallback((message, type = 'info', duration = 5000) => {
     const id = `alert-${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -12,11 +16,7 @@ export function AlertProvider({ children }) {
       setTimeout(() => removeAlert(id), duration)
     }
     return id
-  }, [])
-
-  const removeAlert = useCallback((id) => {
-    setAlerts(prev => prev.filter(a => a.id !== id))
-  }, [])
+  }, [removeAlert])
 
   return (
     <AlertContext.Provider value={{ alerts, addAlert, removeAlert }}>

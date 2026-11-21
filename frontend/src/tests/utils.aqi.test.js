@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getAQICategory, getAQIPercent, getPollutantStatus, AQI_CATEGORIES } from '../utils/aqi'
+import { getAQICategory, getAQIPercent, getPollutantStatus, AQI_CATEGORIES, formatAQI, compareAQI } from '../utils/aqi'
 
 describe('getAQICategory', () => {
   it('returns Good for AQI 0', () => {
@@ -56,4 +56,40 @@ describe('getPollutantStatus', () => {
   it('returns poor for high PM2.5', () => expect(getPollutantStatus('pm25', 100)).toBe('poor'))
   it('returns unknown for null value', () => expect(getPollutantStatus('pm25', null)).toBe('unknown'))
   it('returns unknown for invalid key', () => expect(getPollutantStatus('xyz', 10)).toBe('unknown'))
+})
+
+describe('formatAQI', () => {
+  it('formats good AQI', () => {
+    expect(formatAQI(42)).toBe('42 — Good')
+  })
+  it('formats moderate AQI', () => {
+    expect(formatAQI(75)).toBe('75 — Moderate')
+  })
+  it('formats unhealthy AQI', () => {
+    expect(formatAQI(165)).toBe('165 — Unhealthy')
+  })
+  it('returns N/A for null', () => {
+    expect(formatAQI(null)).toBe('N/A')
+  })
+  it('returns N/A for NaN', () => {
+    expect(formatAQI(NaN)).toBe('N/A')
+  })
+})
+
+describe('compareAQI', () => {
+  it('detects improvement', () => {
+    expect(compareAQI(80, 100).direction).toBe('better')
+  })
+  it('detects worsening', () => {
+    expect(compareAQI(120, 100).direction).toBe('worse')
+  })
+  it('detects stable (within 5)', () => {
+    expect(compareAQI(102, 100).direction).toBe('stable')
+  })
+  it('handles null inputs', () => {
+    expect(compareAQI(null, 100).direction).toBe('stable')
+  })
+  it('returns correct delta', () => {
+    expect(compareAQI(80, 100).delta).toBe(-20)
+  })
 })

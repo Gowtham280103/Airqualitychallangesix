@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import {
-  Navigation, MapPin, Clock, Ruler, Leaf, AlertTriangle,
-  Bike, Car, Train, PersonStanding, ChevronRight, Info
+  Navigation, MapPin, Clock, Leaf, AlertTriangle,
+  Bike, Car, Train, PersonStanding, Info
 } from 'lucide-react'
 import { routeService } from '../services/api'
 import { useLocation } from '../context/LocationContext'
@@ -306,7 +306,7 @@ export default function RoutePlanner() {
   )
 }
 
-function getDemoRoutes(origin, destination) {
+function getDemoRoutes(_origin, _destination) {
   return [
     {
       id: 'walk', mode: 'walking', distance: '2.4', duration: '28',

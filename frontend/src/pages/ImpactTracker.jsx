@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { TrendingUp, Leaf, Bus, Bike, Zap, Award, Info, Plus } from 'lucide-react'
+import { Leaf, Bus, Bike, Zap, Award, Info, Plus } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, LineChart, Line
 } from 'recharts'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { sustainabilityService } from '../services/api'
 import { formatDate } from '../utils/format'
 import clsx from 'clsx'
 
@@ -93,6 +94,13 @@ export default function ImpactTracker() {
       co2,
     }))
     setActions(prev => [...prev, ...newActions])
+
+    // Background sync to backend database (gracefully degrades offline)
+    sustainabilityService.logAction({
+      action_type: logForm.type,
+      co2_saved_kg: Number((co2 * count).toFixed(3)),
+      user_session: 'breathewise-user',
+    }).catch(() => {})
   }
 
   const totalActions = actions.length

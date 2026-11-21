@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query, HTTPException
 from app.services.aqi_service import get_current_aqi
 from app.core.security import sanitize_city
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 router = APIRouter(prefix="/alerts", tags=["Alerts"])
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def _build_alerts(aqi: float, city: str) -> list:
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     alerts = []
 
     if aqi > 300:
@@ -68,7 +68,7 @@ def _build_alerts(aqi: float, city: str) -> list:
         })
 
     # Winter smog seasonal advisory
-    month = datetime.utcnow().month
+    month = datetime.now(timezone.utc).month
     if month in (11, 12, 1, 2) and aqi > 100:
         alerts.append({
             "id": "winter-smog",

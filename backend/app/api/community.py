@@ -5,8 +5,7 @@ from app.database.database import get_db
 from app.models.models import CommunityObservation
 from app.schemas.schemas import ObservationCreate
 from app.core.security import sanitize_city, sanitize_string, validate_aqi
-from datetime import datetime
-import json
+from datetime import datetime, timezone
 import logging
 
 router = APIRouter(prefix="/community", tags=["Community"])
@@ -66,7 +65,7 @@ async def submit_observation(
         aqi_estimate=body.aqi_estimate,
         description=sanitize_string(body.description or "", 300) or None,
         tags=tags_str,
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
     )
     db.add(obs)
     await db.commit()

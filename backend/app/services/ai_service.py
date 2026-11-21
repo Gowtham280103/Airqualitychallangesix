@@ -2,8 +2,8 @@
 AI Service — supports OpenAI, Gemini, Anthropic with graceful fallback.
 Never exposes API keys; never fabricates AQI data as real measurements.
 """
-import os
 import json
+import re
 import logging
 from typing import Optional, List, Dict, Any
 from app.core.config import settings
@@ -254,7 +254,6 @@ async def get_indoor_advice(
 
 def _parse_tips_json(text: str) -> Optional[List[str]]:
     try:
-        import json, re
         match = re.search(r'\{.*\}', text, re.DOTALL)
         if match:
             data = json.loads(match.group())

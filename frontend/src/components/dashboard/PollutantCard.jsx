@@ -43,47 +43,59 @@ export default function PollutantCard({ pollutantKey, value }) {
 
   return (
     <div
-      className="card-hover p-4 group"
+      className="card-hover p-4 group flex flex-col justify-between"
       role="article"
       aria-label={`${info.label}: ${displayValue} ${info.unit}, status ${config.label}`}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-none">
-          {info.label}
-        </p>
-        <span className={clsx('badge text-xs', config.badge)}>
-          <span className={clsx('w-1.5 h-1.5 rounded-full mr-1', config.dot)} aria-hidden="true" />
-          {config.label}
-        </span>
-      </div>
+      <div>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-none">
+            {info.label}
+          </p>
+          <span className={clsx('badge text-xs', config.badge)}>
+            <span className={clsx('w-1.5 h-1.5 rounded-full mr-1', config.dot)} aria-hidden="true" />
+            {config.label}
+          </span>
+        </div>
 
-      {/* Value */}
-      <div className="flex items-baseline gap-1 mb-3">
-        <span className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-none">
-          {displayValue}
-        </span>
-        <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{info.unit}</span>
-      </div>
+        {/* Value */}
+        <div className="flex items-baseline gap-1 mb-3">
+          <span className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-none">
+            {displayValue}
+          </span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{info.unit}</span>
+        </div>
 
-      {/* Progress bar */}
-      <div
-        className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mb-2"
-        role="progressbar"
-        aria-valuenow={value ?? 0}
-        aria-valuemin={0}
-        aria-valuemax={maxRef}
-        aria-label={`${info.label} level indicator`}
-      >
+        {/* Progress bar */}
         <div
-          className={clsx('h-full rounded-full transition-all duration-700', config.bar)}
-          style={{ width: `${barWidth}%` }}
-        />
+          className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mb-2"
+          role="progressbar"
+          aria-valuenow={value ?? 0}
+          aria-valuemin={0}
+          aria-valuemax={maxRef}
+          aria-label={`${info.label} level indicator`}
+        >
+          <div
+            className={clsx('h-full rounded-full transition-all duration-700', config.bar)}
+            style={{ width: `${barWidth}%` }}
+          />
+        </div>
+
+        {/* Description & safe limit */}
+        <p className="text-xs text-gray-400 dark:text-gray-500 leading-tight">{info.description}</p>
+        <p className="text-xs text-gray-300 dark:text-gray-600 mt-0.5">Safe threshold: {info.safe} {info.unit}</p>
       </div>
 
-      {/* Description & safe limit */}
-      <p className="text-xs text-gray-400 dark:text-gray-500 leading-tight">{info.description}</p>
-      <p className="text-xs text-gray-300 dark:text-gray-600 mt-0.5">Safe: {info.safe} {info.unit}</p>
+      {info.healthImpact && (
+        <p
+          className="text-[11px] text-gray-500 dark:text-gray-400 mt-2.5 pt-2 border-t border-gray-100 dark:border-gray-700/60 leading-tight"
+          title={info.healthImpact}
+        >
+          <span className="font-semibold text-gray-600 dark:text-gray-300">Health impact: </span>
+          {info.healthImpact}
+        </p>
+      )}
     </div>
   )
 }

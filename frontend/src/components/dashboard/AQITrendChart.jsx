@@ -30,14 +30,6 @@ function CustomTooltip({ active, payload, label }) {
   )
 }
 
-function ReferenceLabel({ value, color, label }) {
-  return (
-    <text x={0} y={0} dy={-4} fill={color} fontSize={10} fontWeight={500}>
-      {label}
-    </text>
-  )
-}
-
 export default function AQITrendChart({ data = [], height = 200 }) {
   const formatted = data.map(d => ({
     ...d,

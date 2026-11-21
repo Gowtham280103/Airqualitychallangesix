@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Bell, AlertTriangle, AlertCircle, Info, CheckCircle, RefreshCw, MapPin, Shield } from 'lucide-react'
 import { alertsService } from '../services/api'
 import { useLocation } from '../context/LocationContext'
 import { useCurrentAQI } from '../hooks/useAirQuality'
-import { getAQICategory } from '../utils/aqi'
 import { formatRelativeTime } from '../utils/format'
 import SkeletonCard from '../components/ui/SkeletonCard'
 import clsx from 'clsx'
@@ -180,12 +179,12 @@ function generateAlertsFromAQI(aqi, city) {
 
 export default function Alerts() {
   const { location } = useLocation()
-  const { data: aqiData, loading: aqiLoading } = useCurrentAQI()
+  const { data: aqiData } = useCurrentAQI()
   const [apiAlerts, setApiAlerts] = useState(null)
   const [loading, setLoading] = useState(true)
   const [lastRefresh, setLastRefresh] = useState(new Date())
 
-  async function fetchAlerts() {
+  const fetchAlerts = useCallback(async () => {
     setLoading(true)
     try {
       const result = await alertsService.getAlerts(location.city)
@@ -196,9 +195,11 @@ export default function Alerts() {
       setLoading(false)
       setLastRefresh(new Date())
     }
-  }
+  }, [location.city])
 
-  useEffect(() => { fetchAlerts() }, [location.city])
+  useEffect(() => {
+    fetchAlerts()
+  }, [fetchAlerts])
 
   const alerts = apiAlerts || (aqiData?.aqi != null ? generateAlertsFromAQI(aqiData.aqi, location.city) : [])
   const isLoading = loading && !aqiData

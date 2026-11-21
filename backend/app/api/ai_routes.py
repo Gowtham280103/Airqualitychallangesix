@@ -1,20 +1,25 @@
+from collections import defaultdict
+from time import time
+import logging
 from fastapi import APIRouter, HTTPException, Request
 from app.schemas.schemas import ChatRequest, IndoorAdviceRequest, RecommendationRequest
 from app.services.ai_service import get_ai_response, get_indoor_advice
 from app.core.config import settings
-import logging
 
 router = APIRouter(prefix="/ai", tags=["AI"])
 logger = logging.getLogger(__name__)
 
-# Simple in-memory rate limit (per process)
-from collections import defaultdict
-from time import time
+# In-memory rate limiting with automated expired key cleanup
 _request_times: dict = defaultdict(list)
 
 
 def _check_rate_limit(key: str, limit: int, window: int = 60) -> bool:
     now = time()
+    if len(_request_times) > 500:
+        keys_to_clean = [k for k, v in _request_times.items() if not v or (now - v[-1] > window)]
+        for k in keys_to_clean:
+            _request_times.pop(k, None)
+
     times = [t for t in _request_times[key] if now - t < window]
     _request_times[key] = times
     if len(times) >= limit:

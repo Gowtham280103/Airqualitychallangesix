@@ -38,7 +38,6 @@ Element.prototype.scrollIntoView = vi.fn()
 
 // ── Suppress noisy console output in tests ───────────────────────────────────
 // Use restorableSpy — do NOT call the original to avoid recursion
-const originalWarn = console.warn.bind(console)
 vi.spyOn(console, 'warn').mockImplementation((...args) => {
   const msg = args[0]
   // Suppress React act() warnings and recharts deprecation noise

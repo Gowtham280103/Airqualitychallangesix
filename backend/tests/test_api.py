@@ -248,3 +248,99 @@ async def test_no_api_key_in_response(client: AsyncClient):
     assert "api_key" not in body.lower()
     assert "secret" not in body.lower()
     assert "password" not in body.lower()
+
+
+# ── AQI Forecast ──────────────────────────────────────────────────────────────
+@pytest.mark.asyncio
+async def test_aqi_forecast(client: AsyncClient):
+    resp = await client.get("/api/air-quality/forecast?city=Delhi")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "forecast" in data
+    assert isinstance(data["forecast"], list)
+    assert len(data["forecast"]) > 0
+
+
+# ── Impact ────────────────────────────────────────────────────────────────────
+@pytest.mark.asyncio
+async def test_impact_summary_empty(client: AsyncClient):
+    resp = await client.get("/api/impact/summary?user_id=nonexistent-user-xyz")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["actions_count"] == 0
+    assert data["co2_avoided_kg"] == 0.0
+
+
+@pytest.mark.asyncio
+async def test_impact_weekly_trends(client: AsyncClient):
+    resp = await client.get("/api/impact/weekly-trends")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "weeks" in data
+    assert len(data["weeks"]) == 4
+
+
+# ── Community Trends ─────────────────────────────────────────────────────────
+@pytest.mark.asyncio
+async def test_community_trends(client: AsyncClient):
+    resp = await client.get("/api/community/trends?city=Delhi")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "insights" in data
+    assert len(data["insights"]) > 0
+
+
+# ── Sustainability Edge Cases ─────────────────────────────────────────────────
+@pytest.mark.asyncio
+async def test_sustainability_recommendations_no_aqi(client: AsyncClient):
+    resp = await client.get("/api/sustainability/recommendations?city=Delhi")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "recommendations" in data
+
+
+@pytest.mark.asyncio
+async def test_sustainability_recommendations_low_aqi(client: AsyncClient):
+    resp = await client.get("/api/sustainability/recommendations?city=Mumbai&aqi=30")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "recommendations" in data
+    assert len(data["recommendations"]) > 0
+
+
+# ── AI Recommendations endpoint ───────────────────────────────────────────────
+@pytest.mark.asyncio
+async def test_ai_recommendations(client: AsyncClient):
+    resp = await client.post("/api/ai/recommendations", json={
+        "location": "Delhi",
+        "aqi": 120,
+        "lifestyle": "daily commuter",
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "message" in data
+
+
+# ── Validation edge cases ─────────────────────────────────────────────────────
+@pytest.mark.asyncio
+async def test_city_too_long(client: AsyncClient):
+    long_city = "A" * 101
+    resp = await client.get(f"/api/air-quality/current?city={long_city}")
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_aqi_history_min_days(client: AsyncClient):
+    resp = await client.get("/api/air-quality/history?city=Delhi&days=1")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) == 1
+
+
+@pytest.mark.asyncio
+async def test_submit_observation_empty_description(client: AsyncClient):
+    resp = await client.post("/api/community/observations", json={
+        "city": "Mumbai",
+        "aqi_estimate": 80,
+    })
+    assert resp.status_code == 201

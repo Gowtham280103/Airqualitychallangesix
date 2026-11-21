@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
-  Leaf, Bus, Bike, Zap, ShoppingBag, Recycle,
-  CheckCircle2, Circle, TrendingDown, Award, Info
+  Bus, Zap, ShoppingBag, Recycle,
+  CheckCircle2, Circle, TrendingDown, Info
 } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import clsx from 'clsx'
@@ -187,7 +187,7 @@ export default function Sustainability() {
                 </div>
               </div>
 
-              <ul className="space-y-2" role="list">
+              <ul className="space-y-2">
                 {cat.items.map(item => {
                   const isAdopted = adopted.includes(item.id)
                   return (

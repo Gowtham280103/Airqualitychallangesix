@@ -3,7 +3,6 @@ import { Home, Wind, Filter, Flame, Trash2, Droplets, CheckCircle, Loader2, Spar
 import { aiService } from '../services/api'
 import { useCurrentAQI } from '../hooks/useAirQuality'
 import { useLocation } from '../context/LocationContext'
-import { sanitizeText } from '../utils/sanitize'
 import { getAQICategory } from '../utils/aqi'
 import clsx from 'clsx'
 
@@ -90,7 +89,7 @@ function TipList({ tips, loading }) {
   }
 
   return (
-    <ul className="space-y-3" role="list">
+    <ul className="space-y-3">
       {tips.map((tip, i) => (
         <li key={i} className="flex items-start gap-3">
           <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">

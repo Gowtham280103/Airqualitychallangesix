@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
 import AQIGauge from '../components/dashboard/AQIGauge'
 import PollutantCard from '../components/dashboard/PollutantCard'
 import Badge from '../components/ui/Badge'

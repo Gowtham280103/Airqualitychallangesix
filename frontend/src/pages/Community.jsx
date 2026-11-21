@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { Users, PlusCircle, Calendar, Eye, Loader2, AlertTriangle, MapPin, Hash } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { PlusCircle, Calendar, Eye, Loader2, AlertTriangle, MapPin, Hash } from 'lucide-react'
 import { communityService } from '../services/api'
 import { useLocation } from '../context/LocationContext'
 import { useAlerts } from '../context/AlertContext'
@@ -71,7 +71,7 @@ export default function Community() {
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState({ location_name: '', aqi_estimate: '', description: '', tags: '' })
 
-  async function fetchObservations() {
+  const fetchObservations = useCallback(async () => {
     setLoading(true)
     try {
       const result = await communityService.getObservations(location.city)
@@ -81,9 +81,11 @@ export default function Community() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [location.city])
 
-  useEffect(() => { fetchObservations() }, [location.city])
+  useEffect(() => {
+    fetchObservations()
+  }, [fetchObservations])
 
   function handleChange(e) {
     const { name, value } = e.target
