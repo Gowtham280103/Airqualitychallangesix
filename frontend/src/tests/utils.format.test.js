@@ -19,6 +19,34 @@ describe('formatDate', () => {
   })
 })
 
+describe('formatDateTime', () => {
+  it('formats a valid date with time', () => {
+    const result = formatDateTime('2024-01-15T14:30:00')
+    expect(result).toContain('Jan')
+    expect(result).toContain('15')
+    expect(result).toMatch(/\d+:\d+/)
+  })
+  it('returns Unknown for null', () => {
+    expect(formatDateTime(null)).toBe('Unknown')
+  })
+  it('returns Unknown for invalid input', () => {
+    expect(formatDateTime('bad-date')).toBe('Unknown')
+  })
+})
+
+describe('formatRelativeTime', () => {
+  it('returns a relative string for a recent date', () => {
+    const recent = new Date(Date.now() - 60000).toISOString()
+    expect(formatRelativeTime(recent)).toMatch(/minute|ago/)
+  })
+  it('returns Recently for null', () => {
+    expect(formatRelativeTime(null)).toBe('Recently')
+  })
+  it('returns Recently for invalid input', () => {
+    expect(formatRelativeTime('invalid')).toBe('Recently')
+  })
+})
+
 describe('formatNumber', () => {
   it('formats to 1 decimal by default', () => {
     expect(formatNumber(42.567)).toBe('42.6')

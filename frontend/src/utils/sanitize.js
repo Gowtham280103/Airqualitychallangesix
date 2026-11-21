@@ -12,9 +12,12 @@
  */
 export function sanitizeText(str, maxLen = 500) {
   if (typeof str !== 'string') return ''
+  // Strip HTML tags, then remove non-printable ASCII control characters
+  // eslint-disable-next-line no-control-regex
+  const controlChars = /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g
   return str
-    .replace(/<[^>]*>/g, '')            // strip HTML tags
-    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '') // strip control chars
+    .replace(/<[^>]*>/g, '')
+    .replace(controlChars, '')
     .trim()
     .slice(0, maxLen)
 }

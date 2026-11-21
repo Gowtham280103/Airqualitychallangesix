@@ -1,7 +1,7 @@
 /**
  * Formatting utilities for dates, numbers, distances and durations.
  */
-import { format, formatDistanceToNow, isValid, parseISO } from 'date-fns'
+import { format, formatDistanceToNow, isValid } from 'date-fns'
 
 /**
  * Parse a date value that may be a string or Date object.
