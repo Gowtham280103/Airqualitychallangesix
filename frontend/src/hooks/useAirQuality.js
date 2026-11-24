@@ -98,3 +98,36 @@ export function useAQIHistory(days = 7) {
 
   return { data, loading, error }
 }
+
+/**
+ * Fetch short-range AQI forecast for the active location.
+ * Returns { data, loading, error }.
+ */
+export function useAQIForecast() {
+  const { location } = useLocation()
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const key = `aqi-forecast-${location.city}`
+    const cached = getCached(key)
+    if (cached) {
+      setData(cached)
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    airQualityService.getForecast(location.city)
+      .then(result => {
+        setCache(key, result)
+        setData(result)
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [location.city])
+
+  return { data, loading, error }
+}

@@ -5,7 +5,6 @@ import { useCurrentAQI } from '../hooks/useAirQuality'
 import { useLocation } from '../context/LocationContext'
 import { getAQICategory } from '../utils/aqi'
 import clsx from 'clsx'
-
 const HOUSE_TYPES = [
   { id: 'apartment', label: 'Apartment', emoji: '🏢' },
   { id: 'house',     label: 'House',     emoji: '🏠' },

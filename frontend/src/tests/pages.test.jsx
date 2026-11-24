@@ -59,6 +59,17 @@ vi.mock('../hooks/useAirQuality', () => ({
     loading: false,
     error: null,
   })),
+  useAQIForecast: vi.fn(() => ({
+    data: {
+      forecast: [
+        { date: '2024-01-08', aqi: 90, demo: true },
+        { date: '2024-01-09', aqi: 75, demo: true },
+        { date: '2024-01-10', aqi: 110, demo: true },
+      ],
+    },
+    loading: false,
+    error: null,
+  })),
 }))
 
 function Wrapper({ children }) {
@@ -111,6 +122,39 @@ describe('Dashboard', () => {
   it('renders 7-day AQI trend section', () => {
     render(<Wrapper><Dashboard /></Wrapper>)
     expect(screen.getByText(/7-Day AQI Trend/i)).toBeInTheDocument()
+  })
+
+  it('renders AQI scale reference section', () => {
+    render(<Wrapper><Dashboard /></Wrapper>)
+    expect(screen.getByText(/Understanding AQI/i)).toBeInTheDocument()
+  })
+
+  it('renders short-range outlook when forecast data is present', () => {
+    render(<Wrapper><Dashboard /></Wrapper>)
+    expect(screen.getByText(/Short-Range Outlook/i)).toBeInTheDocument()
+  })
+
+  it('renders forecast day labels', () => {
+    render(<Wrapper><Dashboard /></Wrapper>)
+    expect(screen.getByText('Tomorrow')).toBeInTheDocument()
+    expect(screen.getByText('Day 2')).toBeInTheDocument()
+  })
+
+  it('renders health guidance panel', () => {
+    render(<Wrapper><Dashboard /></Wrapper>)
+    expect(screen.getByText(/Health Guidance/i)).toBeInTheDocument()
+  })
+
+  it('renders persona toggle buttons', () => {
+    render(<Wrapper><Dashboard /></Wrapper>)
+    expect(screen.getByRole('button', { name: /General Public/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Children/i })).toBeInTheDocument()
+  })
+
+  it('renders pollutant cards', () => {
+    render(<Wrapper><Dashboard /></Wrapper>)
+    expect(screen.getByText('PM2.5')).toBeInTheDocument()
+    expect(screen.getByText('PM10')).toBeInTheDocument()
   })
 })
 

@@ -3,6 +3,7 @@ import { Menu, Sun, Moon, MapPin, Search, Wind, X } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
 import { useLocation } from '../../context/LocationContext'
 import { sanitizeCity } from '../../utils/sanitize'
+import { useDebounce } from '../../hooks/useDebounce'
 
 const POPULAR_CITIES = ['Delhi', 'Mumbai', 'Bengaluru', 'Kolkata', 'London', 'Tokyo']
 
@@ -11,6 +12,7 @@ export default function Header({ onMenuClick }) {
   const { location, updateLocation } = useLocation()
   const [editing, setEditing] = useState(false)
   const [cityInput, setCityInput] = useState('')
+  const debouncedInput = useDebounce(cityInput, 300)
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export default function Header({ onMenuClick }) {
 
   function handleCitySubmit(e) {
     e.preventDefault()
-    applyCity(cityInput)
+    applyCity(debouncedInput || cityInput)
   }
 
   function applyCity(cityName) {

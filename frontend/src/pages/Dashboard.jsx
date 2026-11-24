@@ -2,12 +2,13 @@ import React, { useState } from 'react'
 import {
   RefreshCw, AlertTriangle, Thermometer, Eye, Wind, Droplets,
   Info, ArrowRight, MessageSquare, Navigation, Home, Leaf,
-  TrendingUp, Activity, Shield, Users, HeartPulse, Sparkles
+  TrendingUp, TrendingDown, Minus, Activity, Shield, Users,
+  HeartPulse, Sparkles, CalendarDays
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useCurrentAQI, useAQIHistory } from '../hooks/useAirQuality'
+import { useCurrentAQI, useAQIHistory, useAQIForecast } from '../hooks/useAirQuality'
 import { useLocation } from '../context/LocationContext'
-import { getAQICategory } from '../utils/aqi'
+import { getAQICategory, compareAQI } from '../utils/aqi'
 import { formatRelativeTime } from '../utils/format'
 import AQIGauge from '../components/dashboard/AQIGauge'
 import AQIScaleReference from '../components/dashboard/AQIScaleReference'
@@ -276,7 +277,7 @@ function QuickNavCard({ to, icon: Icon, label, description, color }) {
 }
 
 // ─── Hero Section ─────────────────────────────────────────────────────────────
-function HeroSection({ aqiData, loading, location, refetch }) {
+function HeroSection({ aqiData, loading, location, refetch, comparison }) {
   const category = getAQICategory(aqiData?.aqi)
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
@@ -361,6 +362,7 @@ function HeroSection({ aqiData, loading, location, refetch }) {
               <span className="font-semibold text-gray-700 dark:text-gray-200">{aqiData.weather.wind_speed} km/h</span>
             </div>
           )}
+          <AQIComparisonBadge comparison={comparison} />
         </div>
       )}
 
@@ -375,14 +377,96 @@ function HeroSection({ aqiData, loading, location, refetch }) {
   )
 }
 
+// ─── Forecast Panel ──────────────────────────────────────────────────────────
+function ForecastPanel({ entries }) {
+  if (!entries || entries.length === 0) return null
+  return (
+    <div className="card p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <CalendarDays className="w-5 h-5 text-sky-500 dark:text-sky-400" aria-hidden="true" />
+        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          Short-Range Outlook
+        </h2>
+        <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">Illustrative forecast</span>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        {entries.slice(0, 3).map((entry, i) => {
+          const cat = getAQICategory(entry.aqi)
+          const labels = ['Tomorrow', 'Day 2', 'Day 3']
+          return (
+            <div
+              key={entry.date || i}
+              className={clsx('rounded-xl p-3 text-center border', cat.bgColor, cat.borderColor)}
+              role="article"
+              aria-label={`${labels[i]}: AQI ${Math.round(entry.aqi)}, ${cat.label}`}
+            >
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{labels[i]}</p>
+              <p className="text-2xl font-extrabold" style={{ color: cat.color }}>
+                {Math.round(entry.aqi)}
+              </p>
+              <p className={clsx('text-xs font-semibold mt-0.5', cat.textColor)}>{cat.label}</p>
+              <p className="text-lg mt-1" aria-hidden="true">{cat.icon}</p>
+            </div>
+          )
+        })}
+      </div>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
+        Forecast values are illustrative estimates — not meteorological predictions.
+      </p>
+    </div>
+  )
+}
+
+// ─── AQI Comparison Badge ────────────────────────────────────────────────────
+function AQIComparisonBadge({ comparison }) {
+  if (!comparison) return null
+  const { direction, delta } = comparison
+  if (direction === 'better') {
+    return (
+      <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm"
+        role="status" aria-label={`AQI improved by ${Math.abs(delta)} since yesterday`}>
+        <TrendingDown className="w-4 h-4" aria-hidden="true" />
+        <span className="font-semibold">{Math.abs(delta)} better than yesterday</span>
+      </div>
+    )
+  }
+  if (direction === 'worse') {
+    return (
+      <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm"
+        role="status" aria-label={`AQI worsened by ${delta} since yesterday`}>
+        <TrendingUp className="w-4 h-4" aria-hidden="true" />
+        <span className="font-semibold">{delta} worse than yesterday</span>
+      </div>
+    )
+  }
+  return (
+    <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400 text-sm"
+      role="status" aria-label="AQI is stable compared to yesterday">
+      <Minus className="w-4 h-4" aria-hidden="true" />
+      <span className="font-semibold">Stable vs yesterday</span>
+    </div>
+  )
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { location } = useLocation()
   const { data: aqiData, loading, error, refetch } = useCurrentAQI()
   const { data: history, loading: histLoading } = useAQIHistory(7)
+  const { data: forecastData } = useAQIForecast()
 
   const isWinterSeason = [11, 12, 1, 2].includes(new Date().getMonth() + 1)
   const isSmogProne = aqiData?.aqi > 100 || isWinterSeason
+
+  // Compute day-over-day AQI comparison using the last 2 history entries
+  const historyArr = Array.isArray(history) ? history : []
+  const yesterday = historyArr.length >= 2 ? historyArr[historyArr.length - 2]?.aqi : null
+  const aqiComparison = aqiData?.aqi != null && yesterday != null
+    ? compareAQI(aqiData.aqi, yesterday)
+    : null
+
+  // Parse forecast entries from the backend response
+  const forecastEntries = forecastData?.forecast ?? []
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -403,7 +487,7 @@ export default function Dashboard() {
       )}
 
       {/* Hero */}
-      <HeroSection aqiData={aqiData} loading={loading} location={location} refetch={refetch} />
+      <HeroSection aqiData={aqiData} loading={loading} location={location} refetch={refetch} comparison={aqiComparison} />
 
       {/* Winter Smog / Inversion Advisory Banner */}
       {isSmogProne && !loading && (
@@ -543,9 +627,13 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Short-range forecast */}
+      {forecastEntries.length > 0 && (
+        <ForecastPanel entries={forecastEntries} />
+      )}
+
       {/* AQI Scale Reference */}
-      <section aria-labelledby="scale-heading">
-        <div className="flex items-center gap-2 mb-4">
+      <section aria-labelledby="scale-heading">        <div className="flex items-center gap-2 mb-4">
           <Info className="w-5 h-5 text-green-600 dark:text-green-400" aria-hidden="true" />
           <h2 id="scale-heading" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Understanding AQI
