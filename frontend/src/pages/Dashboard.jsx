@@ -633,7 +633,8 @@ export default function Dashboard() {
       )}
 
       {/* AQI Scale Reference */}
-      <section aria-labelledby="scale-heading">        <div className="flex items-center gap-2 mb-4">
+      <section aria-labelledby="scale-heading">
+        <div className="flex items-center gap-2 mb-4">
           <Info className="w-5 h-5 text-green-600 dark:text-green-400" aria-hidden="true" />
           <h2 id="scale-heading" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Understanding AQI

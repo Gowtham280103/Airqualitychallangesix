@@ -1,10 +1,10 @@
 # 🌿 BreatheWise — Urban Air Quality Intelligence Assistant
 
 > **Hack2Skill PromptWars Challenge 6** — Full-stack AI-powered Urban Air Quality Assistant  
-> Rank: Top 400 of 54,010 participants | Score: 91.84/100
+> Current Score: 93.88/100 | Top 400 of 54,010 participants
 
-[![Frontend Tests](https://img.shields.io/badge/Frontend%20Tests-100%2B%20passed-brightgreen)]()
-[![Backend Tests](https://img.shields.io/badge/Backend%20Tests-36%20passed-brightgreen)]()
+[![Frontend Tests](https://img.shields.io/badge/Frontend%20Tests-125%20passed-brightgreen)]()
+[![Backend Tests](https://img.shields.io/badge/Backend%20Tests-35%20passed-brightgreen)]()
 [![Python](https://img.shields.io/badge/Python-3.11-blue)]()
 [![React](https://img.shields.io/badge/React-18-blue)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110-green)]()
